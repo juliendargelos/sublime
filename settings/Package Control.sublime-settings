@@ -1,9 +1,10 @@
 {
 	"installed_packages": [
-		"Package Control",
-		"Skins",
+		"A File Icon",
 		"Material Theme",
 		"Materialize-Appbar",
+		"Package Control",
+		"Skins",
 		"SublimeLinter",
 		"SublimeLinter-contrib-jslint",
 		"Git",
