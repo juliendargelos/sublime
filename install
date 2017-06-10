@@ -121,7 +121,7 @@ success 'Copied config files'
 
 br
 
-log "Please open Sublime Text, open the command palette (shift + cmd + P), type 'install' and select 'Install Package Control'. Then return to this console."
+log "Please open Sublime Text, open the command palette (shift + cmd + P), type 'install' and select 'Install Package Control'. Then restart Sublime Text and return to this console."
 watch { File.file? dir[:installed_packages] + 'Package Control.sublime-package' }
 
 br
