@@ -1,6 +1,6 @@
 {
 	"installed_packages": [
-		"package Control",
+		"Package Control",
 		"Skins",
 		"Material Theme",
 		"Materialize-Appbar",

@@ -11,4 +11,4 @@
 	- **Your Sublime Text application support folder is elsewhere or the first method did not work:**
 
 		Type `./install "/path/to/your/sublime/text/application/folder"`
--  Enjoy 😉
+- Enjoy 😉

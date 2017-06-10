@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
 
 require 'open-uri'
+require 'pathname'
 
 def log message, color: nil
-	color = { red: 31, green: 32, yellow: 33 }[color] if color.is_a? Sym
+	color = { red: 31, green: 32, yellow: 33 }[color] if color.is_a? Symbol
 	puts color.is_a?(Fixnum) ? "\e[#{color}m#{message}\e[0m" : message
 end
 
@@ -18,6 +19,15 @@ end
 def error message, abort: true
 	log message, color: :red
 	exit if abort
+end
+
+def prompt message
+	print message
+	gets
+end
+
+def br
+	puts ''
 end
 
 def dir? dir
@@ -44,9 +54,13 @@ def write path, content
 	end
 end
 
+def replace path, from, to
+	write path, read(path).gsub(from, to)
+end
+
 def read path
 	begin
-		File.read file
+		File.read path
 	rescue
 		error "Unable to read: #{path}"
 	end
@@ -64,6 +78,18 @@ def dl url
 	end
 end
 
+def watch delay = 0.1
+	time = 0
+	loader = ['|', '/', '-', '\\']
+	until yield
+		print "\r#{loader[time%loader.length]}"
+		time += 1
+		sleep delay
+	end
+
+	print "\r \r"
+end
+
 log 'Loading Sublime Text directories'
 if ARGV.first
 	path = ARGV.first
@@ -78,15 +104,36 @@ dir = {
 	packages_user: path + 'Packages/User',
 	installed_packages: path + 'Installed Packages'
 }
-dir.each { |d| mkdir dir }
+dir.each { |_, d| mkdir d }
 success 'Sublime Text directories loaded'
 
+br
+
 log 'Installing Package Control'
-write dir[:packages] + 'Package Control.sublime-package', dl('https://packagecontrol.io/Package Control.sublime-package')
+write dir[:packages] + 'Package Control.sublime-package', dl('https://packagecontrol.io/Package%20Control.sublime-package')
 success 'Package Control installed'
+
+br
 
 log 'Copying config files'
 Dir[__dir__+'/settings/*.sublime-settings'].each { |f| cp f, dir[:packages_user] + File.basename(f) }
 success 'Copied config files'
 
+br
 
+log "Please open Sublime Text, open the command palette (shift + cmd + P), type 'install' and select 'Install Package Control'. Then return to this console."
+watch { File.file? dir[:installed_packages] + 'Package Control.sublime-package' }
+
+br
+
+log 'Waiting for theme installation (could take a while...)'
+watch { File.file? dir[:installed_packages] + 'Material Theme.sublime-package' }
+
+br
+
+success 'The theme has been installed'
+log "Return to Sublime Text, open the command palette (shift + cmd + P), type 'material' and select 'Activate Theme'."
+
+br
+
+success 'Finished installation'
