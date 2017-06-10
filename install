@@ -1,0 +1,92 @@
+#!/usr/bin/env ruby
+
+require 'open-uri'
+
+def log message, color: nil
+	color = { red: 31, green: 32, yellow: 33 }[color] if color.is_a? Sym
+	puts color.is_a?(Fixnum) ? "\e[#{color}m#{message}\e[0m" : message
+end
+
+def success message
+	log message, color: :green
+end
+
+def warning message
+	log message, color: :yellow
+end
+
+def error message, abort: true
+	log message, color: :red
+	exit if abort
+end
+
+def dir? dir
+	File.directory? dir
+end
+
+def cd dir
+	dir?(dir) ? Dir.chdir(dir) : error("No such directory: #{dir}")
+end
+
+def mkdir dir
+	begin
+		Dir.mkdir(dir) unless dir?(dir)
+	rescue
+		error "Unable to create directory: #{dir}"
+	end
+end
+
+def write path, content
+	begin
+		File.write path, content
+	rescue
+		error "Unable to write file: #{path}"
+	end
+end
+
+def read path
+	begin
+		File.read file
+	rescue
+		error "Unable to read: #{path}"
+	end
+end
+
+def cp from, to
+	write to, read(from)
+end
+
+def dl url
+	begin
+		open(url).read
+	rescue
+		error "Unable to download: #{url}"
+	end
+end
+
+log 'Loading Sublime Text directories'
+if ARGV.first
+	path = ARGV.first
+else
+	user = `who`.split("\n").first.strip.gsub(/\A(.+?)\s+[a-z\d]+\s+[a-z]+\s+\d{1,2}\s+\d{1,2}:\d{1,2}\z/i, '\1')
+	path = "/Users/#{user}/Library/Application Support/Sublime Text 3/"
+end
+path = Pathname.new path
+cd path
+dir = {
+	packages: path + 'Packages',
+	packages_user: path + 'Packages/User',
+	installed_packages: path + 'Installed Packages'
+}
+dir.each { |d| mkdir dir }
+success 'Sublime Text directories loaded'
+
+log 'Installing Package Control'
+write dir[:packages] + 'Package Control.sublime-package', dl('https://packagecontrol.io/Package Control.sublime-package')
+success 'Package Control installed'
+
+log 'Copying config files'
+Dir[__dir__+'/settings/*.sublime-settings'].each { |f| cp f, dir[:packages_user] + File.basename(f) }
+success 'Copied config files'
+
+
